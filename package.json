@@ -1,0 +1,20 @@
+{
+  "name": "openclaw-pair",
+  "version": "1.0.0",
+  "description": "Pair your iPhone with OpenClaw in one scan",
+  "bin": {
+    "openclaw-pair": "index.mjs"
+  },
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nichochar/openclaw-pair"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "qrcode-terminal": "^0.12.0"
+  }
+}
