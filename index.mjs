@@ -130,21 +130,6 @@ async function generateQR(url) {
   });
 }
 
-// ─── Step 6: Generate backup code ───────────────────────────────────────────
-
-function generateBackupCode(token) {
-  // Deterministic 6-char code from token (so it's stable per instance)
-  const hash = token.split("").reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0);
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no ambiguous chars
-  let code = "";
-  let h = Math.abs(hash);
-  for (let i = 0; i < 6; i++) {
-    code += chars[h % chars.length];
-    h = Math.floor(h / chars.length);
-  }
-  return code;
-}
-
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -203,7 +188,8 @@ ${BOLD}Requirements:${RESET}
     let serveOn443 = false;
     try {
       const serveResult = execSync("tailscale serve status", { stdio: ["pipe", "pipe", "pipe"], timeout: 3000 });
-      if (serveResult.toString().includes(":443")) serveOn443 = true;
+      const serveOutput = serveResult.toString();
+      if (serveOutput.includes(":443") && serveOutput.includes(String(port))) serveOn443 = true;
     } catch {}
     if (serveOn443) {
       pairingPort = 443;
