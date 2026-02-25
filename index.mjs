@@ -246,12 +246,7 @@ ${BOLD}Requirements:${RESET}
   const qr = await generateQR(pairingURL);
   console.log(qr);
 
-  // Step 6: Show backup code
-  const backupCode = generateBackupCode(token);
-  console.log(`${BOLD}  Backup code: ${CYAN}${backupCode}${RESET}`);
-  dim("  (Use this if QR scanning doesn't work)\n");
-
-  // Step 7: Instructions
+  // Step 6: Instructions
   console.log(`${BOLD}  Next steps:${RESET}`);
   console.log(`  1. Open the ${BOLD}OpenClaw${RESET} app on your iPhone`);
   console.log(`  2. Scan this QR code`);
