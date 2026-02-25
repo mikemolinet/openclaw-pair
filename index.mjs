@@ -189,7 +189,8 @@ ${BOLD}Requirements:${RESET}
     try {
       const serveResult = execSync("tailscale serve status", { stdio: ["pipe", "pipe", "pipe"], timeout: 3000 });
       const serveOutput = serveResult.toString();
-      if (serveOutput.includes(":443") && serveOutput.includes(String(port))) serveOn443 = true;
+      const portPattern = new RegExp(`\\b${port}\\b`);
+      if (serveOutput.includes(":443") && portPattern.test(serveOutput)) serveOn443 = true;
     } catch {}
     if (serveOn443) {
       pairingPort = 443;
