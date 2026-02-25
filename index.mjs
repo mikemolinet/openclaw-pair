@@ -205,9 +205,19 @@ ${BOLD}Requirements:${RESET}
       const serveResult = execSync("tailscale serve status", { stdio: ["pipe", "pipe", "pipe"], timeout: 3000 });
       if (serveResult.toString().includes(":443")) serveOn443 = true;
     } catch {}
-    pairingPort = serveOn443 ? 443 : port;
-    connectionType = "tailscale";
-    info(`  ✓ Tailscale detected: ${host}:${pairingPort}`);
+    if (serveOn443) {
+      pairingPort = 443;
+      connectionType = "tailscale";
+      info(`  ✓ Tailscale detected: ${host} (via Tailscale Serve)`);
+    } else {
+      // No Tailscale Serve — need to set it up so the gateway is reachable
+      console.log(`\n${YELLOW}  ⚠ Tailscale is running but Tailscale Serve is not set up.${RESET}`);
+      console.log(`${YELLOW}    Your gateway isn't reachable from your phone yet.${RESET}\n`);
+      console.log(`  Run this once to expose it:\n`);
+      console.log(`    ${BOLD}tailscale serve --bg ${port}${RESET}\n`);
+      console.log(`  Then run ${BOLD}openclaw-pair${RESET} again.\n`);
+      process.exit(1);
+    }
   } else if (localIP) {
     host = localIP;
     pairingPort = port;
