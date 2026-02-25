@@ -81,12 +81,17 @@ function getToken(config) {
 // ─── Step 3: Check if gateway is running ────────────────────────────────────
 
 function checkGateway(port) {
+  // Try multiple detection methods — lsof may fail without elevated perms
   try {
     execSync(`lsof -i :${port} -sTCP:LISTEN`, { stdio: "pipe" });
     return true;
-  } catch {
-    return false;
-  }
+  } catch {}
+  // Fallback: try to hit the gateway HTTP endpoint
+  try {
+    execSync(`curl -sf -o /dev/null --max-time 2 http://127.0.0.1:${port}/`, { stdio: "pipe" });
+    return true;
+  } catch {}
+  return false;
 }
 
 // ─── Step 4: Detect best connection method ──────────────────────────────────
@@ -190,7 +195,9 @@ ${BOLD}Requirements:${RESET}
       const serveResult = execSync("tailscale serve status", { stdio: ["pipe", "pipe", "pipe"], timeout: 3000 });
       const serveOutput = serveResult.toString();
       const portPattern = new RegExp(`\\b${port}\\b`);
-      if (serveOutput.includes(":443") && portPattern.test(serveOutput)) serveOn443 = true;
+      // Tailscale Serve on 443 shows as "https://hostname" (no :443) or ":443"
+      const servesHTTPS = serveOutput.includes("https://") || serveOutput.includes(":443");
+      if (servesHTTPS && portPattern.test(serveOutput)) serveOn443 = true;
     } catch {}
     if (serveOn443) {
       pairingPort = 443;
