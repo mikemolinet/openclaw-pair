@@ -189,29 +189,12 @@ ${BOLD}Requirements:${RESET}
 
   if (tailscaleHost) {
     host = tailscaleHost;
-    // Check if Tailscale Serve is proxying on 443, otherwise use gateway port directly
-    let serveOn443 = false;
-    try {
-      const serveResult = execSync("tailscale serve status", { stdio: ["pipe", "pipe", "pipe"], timeout: 3000 });
-      const serveOutput = serveResult.toString();
-      const portPattern = new RegExp(`\\b${port}\\b`);
-      // Tailscale Serve on 443 shows as "https://hostname" (no :443) or ":443"
-      const servesHTTPS = serveOutput.includes("https://") || serveOutput.includes(":443");
-      if (servesHTTPS && portPattern.test(serveOutput)) serveOn443 = true;
-    } catch {}
-    if (serveOn443) {
-      pairingPort = 443;
-      connectionType = "tailscale";
-      info(`  ✓ Tailscale detected: ${host} (via Tailscale Serve)`);
-    } else {
-      // No Tailscale Serve — need to set it up so the gateway is reachable
-      console.log(`\n${YELLOW}  ⚠ Tailscale is running but Tailscale Serve is not set up.${RESET}`);
-      console.log(`${YELLOW}    Your gateway isn't reachable from your phone yet.${RESET}\n`);
-      console.log(`  Run this once to expose it:\n`);
-      console.log(`    ${BOLD}tailscale serve --bg ${port}${RESET}\n`);
-      console.log(`  Then run ${BOLD}openclaw-pair${RESET} again.\n`);
-      process.exit(1);
-    }
+    // Connect directly to the gateway port over Tailscale's WireGuard tunnel.
+    // Tailscale Serve (HTTPS on 443) breaks WebSocket upgrades in some versions,
+    // so we skip it entirely. The Tailscale tunnel is already encrypted.
+    pairingPort = port;
+    connectionType = "tailscale";
+    info(`  ✓ Tailscale detected: ${host}:${pairingPort} (direct, WireGuard-encrypted)`);
   } else if (localIP) {
     host = localIP;
     pairingPort = port;
