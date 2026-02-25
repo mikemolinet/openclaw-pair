@@ -198,11 +198,16 @@ ${BOLD}Requirements:${RESET}
   let host, connectionType, pairingPort;
 
   if (tailscaleHost) {
-    // Tailscale Serve typically proxies to 443
     host = tailscaleHost;
-    pairingPort = 443;
+    // Check if Tailscale Serve is proxying on 443, otherwise use gateway port directly
+    let serveOn443 = false;
+    try {
+      const serveResult = execSync("tailscale serve status", { stdio: ["pipe", "pipe", "pipe"], timeout: 3000 });
+      if (serveResult.toString().includes(":443")) serveOn443 = true;
+    } catch {}
+    pairingPort = serveOn443 ? 443 : port;
     connectionType = "tailscale";
-    info(`  ✓ Tailscale detected: ${host}`);
+    info(`  ✓ Tailscale detected: ${host}:${pairingPort}`);
   } else if (localIP) {
     host = localIP;
     pairingPort = port;
